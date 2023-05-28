@@ -1,30 +1,72 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
+<script>
+import {store} from './store';
+
+import AppFilter from './components/AppFilter.vue';
+import AppHeader from './components/AppHeader.vue';
+import AppMain from './components/AppMain.vue';
+import axios from 'axios';
+import AppLoader from './components/AppLoader.vue';
+
+
+
+export default {
+
+  data(){
+    
+    return {
+      store,
+    }
+
+  },
+
+  
+  
+  components: {
+    AppHeader,
+    AppFilter,
+    AppMain,
+    AppLoader,
+  },
+
+  methods: {
+    filteredArchetypes() {
+      axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php', {
+        params: {
+          num:20,
+          offset:0,
+          archetype: this.store.searchArchetypes,
+        }
+      })
+      .then(response => (this.store.CharacterList = response.data.data));
+    },
+    reset() {
+      axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php?num=20&offset=0')
+      .then(response => (this.store.CharacterList = response.data.data));
+      this.store.searchArchetypes = ''
+    }, 
+  },
+  created() {
+    axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php?num=20&offset=0')
+    .then(response => (this.store.CharacterList = response.data.data));
+     
+    axios.get('https://db.ygoprodeck.com/api/v7/archetypes.php')   
+    .then(response => (this.store.ArrArchetypes = response.data));
+    
+  },
+
+}
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <AppHeader/>
+  <AppFilter @performSearch="filteredArchetypes" @resetSearch="reset"/>
+  <AppLoader v-show="store.CharacterList.length === 0"/>
+  <AppMain/> 
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
+<style lang="scss">
+
+@use './assets/style/general.scss'
+
+
 </style>
